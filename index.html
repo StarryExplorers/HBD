@@ -17,11 +17,12 @@
   .cloud{position:absolute;filter:drop-shadow(0 8px 16px rgba(0,0,0,0.06));opacity:0.95}
   .cloud svg{display:block}
   .title{ position:absolute; top:36px; left:50%; transform:translateX(-50%); text-align:center; z-index:6; }
-  .title h1{ margin:0; color:#ffffff; font-weight:900; font-size:clamp(28px,6vw,56px); letter-spacing:1px; text-shadow: 0 6px 30px rgba(11,111,168,0.18), 0 0 12px rgba(255,255,255,0.45); }
+  /* Changed: heading color -> black and font -> cursive */
+  .title h1{ margin:0; color:#000000; font-family: 'Brush Script MT', 'Pacifico', cursive; font-weight:900; font-size:clamp(28px,6vw,56px); letter-spacing:1px; text-shadow: none; }
   .title p{ margin:6px 0 0;color:rgba(3,54,79,0.9);font-weight:600 }
   .ground{position:absolute;left:0;right:0;bottom:0;height:34%;pointer-events:none}
   .cakeWrap{ position:absolute; left:50%; top:50%; transform:translate(-50%,-6%); z-index:5; width:min(420px,62%); max-width:480px; display:flex; align-items:center; justify-content:center; }
-  .controls{position:absolute;right:18px;top:18px;z-index:7;display:flex;gap:8px}
+  .controls{position:absolute;right:18px;top:18px;z-index:7;display:flex;flex-direction:column;gap:8px} /* column so buttons stack vertically */
   .btn{background:#ffffff; border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;color:#0b6fa8;box-shadow:0 8px 18px rgba(11,111,168,0.08)}
   .btn.ghost{background:transparent;border:1px solid rgba(11,111,168,0.14)}
   canvas#confetti{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
@@ -29,12 +30,16 @@
   @media (max-width:600px){ .title h1{font-size:28px} .cakeWrap{width:78%} }
   /* small accessibility focus style */
   .btn:focus{outline:3px solid rgba(11,111,168,0.18);outline-offset:2px}
+
+  /* Lower the blow button so it's easier to see (keeps toggle above it) */
+  #toggleBtn { order: 0; }
+  #blowBtn { order: 1; margin-top: 18px; }
 </style>
 </head>
 <body>
   <div class="stage" role="main" aria-label="Birthday scene">
     <div class="controls" aria-hidden="false">
-      <button class="btn" id="replayBtn" title="Replay confetti">Celebrate 🎉</button>
+      <!-- Celebrate button removed as requested -->
       <button class="btn" id="blowBtn" title="Blow out the candle">Blow 🎈</button>
       <button class="btn ghost" id="toggleBtn" title="Toggle confetti">Toggle</button>
     </div>
@@ -72,13 +77,16 @@
           <path d="M0 -6 C 2 -8, 1 -12, 0 -14 C -1 -12, -2 -8, 0 -6 Z" fill="#ffd77a" opacity="0.95"/>
         </g>
 
-        <!-- face group (eyes, smile) -->
+        <!-- face group (cute with black eyes and smile) -->
         <g id="face" transform="translate(200,180)">
-          <circle id="eyeL" cx="-36" cy="10" r="10" fill="#3b3b3b"/>
-          <circle id="eyeR" cx="36" cy="10" r="10" fill="#3b3b3b"/>
-          <path id="smile" d="M -34 28 Q 0 46 34 28" fill="none" stroke="#3b3b3b" stroke-width="4" stroke-linecap="round"/>
+          <!-- black eyes -->
+          <circle id="eyeL" cx="-24" cy="6" r="8" fill="#000000"/>
+          <circle id="eyeR" cx="24" cy="6" r="8" fill="#000000"/>
+          <!-- simple cute smile (black) -->
+          <path id="smile" d="M -18 20 Q 0 36 18 20" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/>
         </g>
 
+        <!-- cute small blush remains -->
         <circle cx="164" cy="190" r="8" fill="#ffb3c4" opacity="0.9"/>
         <circle cx="236" cy="190" r="8" fill="#ffb3c4" opacity="0.9"/>
       </svg>
@@ -136,14 +144,14 @@ function maybeBlink(){
   blinkCounter--;
   if(blinkCounter <= 0){
     blinkCounter = 120 + Math.floor(Math.random()*260);
-    // animate eyes squinting quickly
+    // animate eyes squinting quickly (scaleY on circles)
     const eyeL = document.getElementById('eyeL');
     const eyeR = document.getElementById('eyeR');
-    eyeL.animate([{r:10},{r:1},{r:10}], { duration:280, easing:'ease-in-out' });
-    eyeR.animate([{r:10},{r:1},{r:10}], { duration:280, easing:'ease-in-out' });
-    // also a tiny smile wiggle
+    eyeL.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0.12)' }, { transform: 'scaleY(1)' }], { duration: 280, easing: 'ease-in-out' });
+    eyeR.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0.12)' }, { transform: 'scaleY(1)' }], { duration: 280, easing: 'ease-in-out' });
+    // tiny smile wiggle
     const smile = document.getElementById('smile');
-    smile.animate([{transform:'translateY(0)'},{transform:'translateY(2px)'},{transform:'translateY(0)'}], { duration:280, easing:'ease-in-out' });
+    smile.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(2px)' }, { transform: 'translateY(0)' }], { duration: 280, easing: 'ease-in-out' });
   }
 }
 
@@ -203,88 +211,79 @@ function startAutoConfetti(){
   setTimeout(()=> { confettiActive = false; }, 4200);
 }
 
-/* replay button */
-document.getElementById('replayBtn').addEventListener('click', ()=>{
-  confettiActive = true; particles = [];
-  const rect = stage.getBoundingClientRect();
-  const cx = rect.width/2, cy = rect.height/2 - 20;
-  spawnConfettiBurst(cx, cy - 40, 120);
-  setTimeout(()=> { confettiActive = false; }, 4200);
-});
+/* replay button removed — guard any reference (none left) */
+
 /* toggle button */
 let toggleEnabled = true;
-document.getElementById('toggleBtn').addEventListener('click', ()=>{
-  toggleEnabled = !toggleEnabled;
-  document.getElementById('toggleBtn').textContent = toggleEnabled ? 'Toggle' : 'Muted';
-});
+const toggleBtn = document.getElementById('toggleBtn');
+if(toggleBtn){
+  toggleBtn.addEventListener('click', ()=>{
+    toggleEnabled = !toggleEnabled;
+    toggleBtn.textContent = toggleEnabled ? 'Toggle' : 'Muted';
+  });
+}
 
 /* ---------- Candle flame flicker + blow logic ---------- */
 const flameG = document.getElementById('flame');
 let flameAlive = true;
 let flameAnimHandle = null;
 
-// flicker using rAF to keep in sync with loop
+// flicker using timeout to keep in sync with loop
 function flameFlickerStep(){
   if(!flameAlive) return;
-  // slight random scale and rotation
   const scale = 0.92 + Math.random() * 0.2;
   const rot = (Math.random() * 6) - 3;
   flameG.style.transform = `translate(200px,86px) scale(${scale}) rotate(${rot}deg)`;
-  // schedule next flicker
   flameAnimHandle = setTimeout(flameFlickerStep, 110 + Math.random()*90);
 }
-// start flicker
 flameFlickerStep();
 
-// blow button behavior
-document.getElementById('blowBtn').addEventListener('click', ()=>{
-  if(!flameAlive) return;
-  flameAlive = false;
-  // stop continuous flicker
-  clearTimeout(flameAnimHandle);
+// blow button behavior (lowered visually)
+const blowBtn = document.getElementById('blowBtn');
+if(blowBtn){
+  blowBtn.addEventListener('click', ()=>{
+    if(!flameAlive) return;
+    flameAlive = false;
+    clearTimeout(flameAnimHandle);
 
-  // eye blink / face react
-  const eyeL = document.getElementById('eyeL');
-  const eyeR = document.getElementById('eyeR');
-  const smile = document.getElementById('smile');
-  // quick "closing" animation using scale transform on the eyes via animate
-  eyeL.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
-  eyeR.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
-  smile.animate([{transform:'translateY(0)'},{transform:'translateY(4px)'},{transform:'translateY(0)'}], { duration:420, easing:'ease-in-out' });
+    // eye blink / face react
+    const eyeL = document.getElementById('eyeL');
+    const eyeR = document.getElementById('eyeR');
+    const smile = document.getElementById('smile');
+    eyeL.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
+    eyeR.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
+    smile.animate([{transform:'translateY(0)'},{transform:'translateY(4px)'},{transform:'translateY(0)'}], { duration:420, easing:'ease-in-out' });
 
-  // animate flame shrink + fade by manipulating opacity & scale via Web Animations
-  flameG.animate([
-    { transform: 'translate(200px,86px) scale(1)', opacity: 1 },
-    { transform: 'translate(200px,78px) scale(0.2)', opacity: 0 }
-  ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    // animate flame shrink + fade
+    flameG.animate([
+      { transform: 'translate(200px,86px) scale(1)', opacity: 1 },
+      { transform: 'translate(200px,78px) scale(0.2)', opacity: 0 }
+    ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
 
-  // smoke puff: create several light circles that rise & fade
-  const svg = document.getElementById('cakeSVG');
-  // We'll animate smoke using absolute-positioned canvas overlay approach: draw circles on confetti canvas
-  // but simpler: create lite SVG circles appended to the cake SVG and animate them with WAAPI
-  const ns = "http://www.w3.org/2000/svg";
-  for(let i=0;i<6;i++){
-    const s = document.createElementNS(ns, 'circle');
-    const ox = (Math.random()*20 - 10);
-    s.setAttribute('cx', 200 + ox);
-    s.setAttribute('cy', 78 + (Math.random()*6 - 3));
-    const r = 4 + Math.random()*6;
-    s.setAttribute('r', r.toString());
-    s.setAttribute('fill', '#bfbfbf');
-    s.setAttribute('opacity', '0.75');
-    svg.appendChild(s);
-    // animate each smoke circle
-    const dx = (Math.random()*16 - 8);
-    const dy = -24 - Math.random()*18;
-    const dur = 700 + Math.random()*400;
-    s.animate([
-      { transform: 'translate(0,0)', opacity: 0.7 },
-      { transform: `translate(${dx}px, ${dy}px)`, opacity: 0.02 }
-    ], { duration: dur, easing: 'ease-out', fill: 'forwards' });
-    // remove after animation
-    setTimeout(()=> { try{ s.remove(); }catch(e){} }, dur + 40);
-  }
-});
+    // smoke puff
+    const svg = document.getElementById('cakeSVG');
+    const ns = "http://www.w3.org/2000/svg";
+    for(let i=0;i<6;i++){
+      const s = document.createElementNS(ns, 'circle');
+      const ox = (Math.random()*20 - 10);
+      s.setAttribute('cx', 200 + ox);
+      s.setAttribute('cy', 78 + (Math.random()*6 - 3));
+      const r = 4 + Math.random()*6;
+      s.setAttribute('r', r.toString());
+      s.setAttribute('fill', '#bfbfbf');
+      s.setAttribute('opacity', '0.75');
+      svg.appendChild(s);
+      const dx = (Math.random()*16 - 8);
+      const dy = -24 - Math.random()*18;
+      const dur = 700 + Math.random()*400;
+      s.animate([
+        { transform: 'translate(0,0)', opacity: 0.7 },
+        { transform: `translate(${dx}px, ${dy}px)`, opacity: 0.02 }
+      ], { duration: dur, easing: 'ease-out', fill: 'forwards' });
+      setTimeout(()=> { try{ s.remove(); }catch(e){} }, dur + 40);
+    }
+  });
+}
 
 /* ---------- Main loop: blink, clouds, confetti rendering ---------- */
 let raf;
@@ -294,9 +293,7 @@ function loop(){
   if(confettiActive && toggleEnabled){
     updateConfetti();
   } else {
-    // clear confetti canvas between bursts if not active; keep clearing so smoke from SVG still visible
     ctx.clearRect(0,0,W,H);
-    // still draw any existing particles (we already clear when none)
     updateConfetti();
   }
   raf = requestAnimationFrame(loop);
@@ -305,4 +302,4 @@ loop();
 startAutoConfetti();
 </script>
 </body>
-        </html>
+</html>
