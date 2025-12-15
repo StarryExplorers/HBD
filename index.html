@@ -70,10 +70,13 @@
 
         <!-- single candle (body) -->
         <rect id="candleBody" x="192" y="92" width="16" height="46" rx="3" fill="#ffffff"/>
-        <!-- flame group: positioned relative to SVG coordinates (transform attribute sets location) -->
-        <g id="flame" transform="translate(200,86)" style="transform-origin:200px 86px;">
-          <path id="flameShape" d="M0 0 C 6 -8, 4 -18, 0 -22 C -4 -18, -6 -8, 0 0 Z" fill="#ffb84d"/>
-          <path d="M0 -6 C 2 -8, 1 -12, 0 -14 C -1 -12, -2 -8, 0 -6 Z" fill="#ffd77a" opacity="0.95"/>
+
+        <!-- ===== FIXED: flameBase anchors flame to candle; inner #flame is animated only ===== -->
+        <g id="flameBase" transform="translate(200,86)">
+          <g id="flame" style="transform-origin: 0px 0px;">
+            <path id="flameShape" d="M0 0 C 6 -8, 4 -18, 0 -22 C -4 -18, -6 -8, 0 0 Z" fill="#ffb84d"/>
+            <path d="M0 -6 C 2 -8, 1 -12, 0 -14 C -1 -12, -2 -8, 0 -6 Z" fill="#ffd77a" opacity="0.95"/>
+          </g>
         </g>
 
         <!-- face group (cute with black eyes and smile) -->
@@ -229,7 +232,7 @@ function flameFlickerStep(){
   if(!flameAlive) return;
   const scale = 0.92 + Math.random() * 0.2;
   const rot = (Math.random() * 6) - 3;
-  // use CSS transform (scale/rotate) while transform-origin is set in the element style
+  // animate inner flame only; flameBase keeps it anchored
   flameG.style.transform = `scale(${scale}) rotate(${rot}deg)`;
   flameAnimHandle = setTimeout(flameFlickerStep, 110 + Math.random()*90);
 }
@@ -251,7 +254,7 @@ if(blowBtn){
     eyeR.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
     smile.animate([{transform:'translateY(0)'},{transform:'translateY(4px)'},{transform:'translateY(0)'}], { duration:420, easing:'ease-in-out' });
 
-    // animate flame shrink + fade (use CSS transform scale + opacity)
+    // animate flame shrink + fade (use CSS transform scale + opacity on inner flame)
     const anim = flameG.animate([
       { transform: 'scale(1)', opacity: 1 },
       { transform: 'scale(0.2)', opacity: 0 }
