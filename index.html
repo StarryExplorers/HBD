@@ -26,7 +26,6 @@
   .btn{background:#ffffff; border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;color:#0b6fa8;box-shadow:0 8px 18px rgba(11,111,168,0.08)}
   .btn.ghost{background:transparent;border:1px solid rgba(11,111,168,0.14)}
   canvas#confetti{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
-  .note{position:absolute;left:50%;transform:translateX(-50%);bottom:8%;z-index:5;color:#043047;font-weight:700;background: rgba(255,255,255,0.9);padding:8px 14px;border-radius:999px;box-shadow:0 8px 18px rgba(3,30,50,0.06)}
   @media (max-width:600px){ .title h1{font-size:28px} .cakeWrap{width:78%} }
   /* small accessibility focus style */
   .btn:focus{outline:3px solid rgba(11,111,168,0.18);outline-offset:2px}
@@ -71,7 +70,7 @@
 
         <!-- single candle (body) -->
         <rect id="candleBody" x="192" y="92" width="16" height="46" rx="3" fill="#ffffff"/>
-        <!-- flame group: positioned relative to SVG coordinates -->
+        <!-- flame group: positioned relative to SVG coordinates (transform attribute sets location) -->
         <g id="flame" transform="translate(200,86)" style="transform-origin:200px 86px;">
           <path id="flameShape" d="M0 0 C 6 -8, 4 -18, 0 -22 C -4 -18, -6 -8, 0 0 Z" fill="#ffb84d"/>
           <path d="M0 -6 C 2 -8, 1 -12, 0 -14 C -1 -12, -2 -8, 0 -6 Z" fill="#ffd77a" opacity="0.95"/>
@@ -92,7 +91,6 @@
       </svg>
     </div>
 
-    <div class="note" aria-hidden="true">Press Celebrate for confetti again 🎉</div>
     <canvas id="confetti" aria-hidden="true"></canvas>
   </div>
 
@@ -211,8 +209,6 @@ function startAutoConfetti(){
   setTimeout(()=> { confettiActive = false; }, 4200);
 }
 
-/* replay button removed — guard any reference (none left) */
-
 /* toggle button */
 let toggleEnabled = true;
 const toggleBtn = document.getElementById('toggleBtn');
@@ -228,12 +224,13 @@ const flameG = document.getElementById('flame');
 let flameAlive = true;
 let flameAnimHandle = null;
 
-// flicker using timeout to keep in sync with loop
+// flicker: only scale & rotate (no translate) so flame stays fixed on candle
 function flameFlickerStep(){
   if(!flameAlive) return;
   const scale = 0.92 + Math.random() * 0.2;
   const rot = (Math.random() * 6) - 3;
-  flameG.style.transform = `translate(200px,86px) scale(${scale}) rotate(${rot}deg)`;
+  // use CSS transform (scale/rotate) while transform-origin is set in the element style
+  flameG.style.transform = `scale(${scale}) rotate(${rot}deg)`;
   flameAnimHandle = setTimeout(flameFlickerStep, 110 + Math.random()*90);
 }
 flameFlickerStep();
@@ -254,13 +251,18 @@ if(blowBtn){
     eyeR.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
     smile.animate([{transform:'translateY(0)'},{transform:'translateY(4px)'},{transform:'translateY(0)'}], { duration:420, easing:'ease-in-out' });
 
-    // animate flame shrink + fade
-    flameG.animate([
-      { transform: 'translate(200px,86px) scale(1)', opacity: 1 },
-      { transform: 'translate(200px,78px) scale(0.2)', opacity: 0 }
+    // animate flame shrink + fade (use CSS transform scale + opacity)
+    const anim = flameG.animate([
+      { transform: 'scale(1)', opacity: 1 },
+      { transform: 'scale(0.2)', opacity: 0 }
     ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
 
-    // smoke puff
+    // when finished, remove flame completely so it disappears
+    anim.onfinish = () => {
+      try { flameG.style.display = 'none'; } catch(e){}
+    };
+
+    // smoke puff - create SVG circles and animate them
     const svg = document.getElementById('cakeSVG');
     const ns = "http://www.w3.org/2000/svg";
     for(let i=0;i<6;i++){
