@@ -2,112 +2,307 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Happy Birthday Grandpa</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday — Grandpa 🎂</title>
 <style>
-  body, html {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(#07142a, #000011);
-    color: #fff;
+  :root{
+    --sky-top: #d9f4ff;
+    --sky-bottom: #bfe9ff;
+    --accent: #0b6fa8;
+    --text-glow: rgba(255,255,255,0.9);
+    --card-w: 980px;
   }
-  canvas {
-    display: block;
-  }
-  .message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(30px, 5vw, 70px);
-    font-weight: 800;
-    text-align: center;
-    color: #fff;
-    text-shadow:
-      0 0 10px #fff,
-      0 0 20px #aaffff,
-      0 0 30px #55ccff,
-      0 0 40px #33bbff;
-  }
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI, system-ui, -apple-system, "Helvetica Neue", Arial; background: linear-gradient(180deg,var(--sky-top),var(--sky-bottom)); color:#07364f; display:flex;align-items:center;justify-content:center;}
+  .stage{width:min(var(--card-w),96vw); max-width:1100px; height:min(700px,84vh); position:relative; border-radius:16px; overflow:hidden; box-shadow: 0 18px 48px rgba(3,30,50,0.12); background: transparent; padding:24px;}
+  .cloud{position:absolute;filter:drop-shadow(0 8px 16px rgba(0,0,0,0.06));opacity:0.95}
+  .cloud svg{display:block}
+  .title{ position:absolute; top:36px; left:50%; transform:translateX(-50%); text-align:center; z-index:6; }
+  .title h1{ margin:0; color:#ffffff; font-weight:900; font-size:clamp(28px,6vw,56px); letter-spacing:1px; text-shadow: 0 6px 30px rgba(11,111,168,0.18), 0 0 12px rgba(255,255,255,0.45); }
+  .title p{ margin:6px 0 0;color:rgba(3,54,79,0.9);font-weight:600 }
+  .ground{position:absolute;left:0;right:0;bottom:0;height:34%;pointer-events:none}
+  .cakeWrap{ position:absolute; left:50%; top:50%; transform:translate(-50%,-6%); z-index:5; width:min(420px,62%); max-width:480px; display:flex; align-items:center; justify-content:center; }
+  .controls{position:absolute;right:18px;top:18px;z-index:7;display:flex;gap:8px}
+  .btn{background:#ffffff; border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;color:#0b6fa8;box-shadow:0 8px 18px rgba(11,111,168,0.08)}
+  .btn.ghost{background:transparent;border:1px solid rgba(11,111,168,0.14)}
+  canvas#confetti{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
+  .note{position:absolute;left:50%;transform:translateX(-50%);bottom:8%;z-index:5;color:#043047;font-weight:700;background: rgba(255,255,255,0.9);padding:8px 14px;border-radius:999px;box-shadow:0 8px 18px rgba(3,30,50,0.06)}
+  @media (max-width:600px){ .title h1{font-size:28px} .cakeWrap{width:78%} }
+  /* small accessibility focus style */
+  .btn:focus{outline:3px solid rgba(11,111,168,0.18);outline-offset:2px}
 </style>
 </head>
 <body>
-<canvas id="scene"></canvas>
-<div class="message">Happy Birthday, Grandpa</div>
+  <div class="stage" role="main" aria-label="Birthday scene">
+    <div class="controls" aria-hidden="false">
+      <button class="btn" id="replayBtn" title="Replay confetti">Celebrate 🎉</button>
+      <button class="btn" id="blowBtn" title="Blow out the candle">Blow 🎈</button>
+      <button class="btn ghost" id="toggleBtn" title="Toggle confetti">Toggle</button>
+    </div>
+
+    <!-- clouds -->
+    <div class="cloud" id="cloud1" style="left:-8%;top:6%;width:38%;">
+      <svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M10 30 Q25 5 60 22 Q85 -5 120 18 Q155 12 185 28 Q195 40 162 50 Q120 60 80 52 Q40 60 12 48 Z" fill="#ffffff"/></svg>
+    </div>
+    <div class="cloud" id="cloud2" style="left:62%;top:18%;width:30%">
+      <svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M10 30 Q25 5 60 22 Q85 -5 120 18 Q155 12 185 28 Q195 40 162 50 Q120 60 80 52 Q40 60 12 48 Z" fill="#ffffff"/></svg>
+    </div>
+    <div class="cloud" id="cloud3" style="left:18%;top:26%;width:22%">
+      <svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M10 30 Q25 5 60 22 Q85 -5 120 18 Q155 12 185 28 Q195 40 162 50 Q120 60 80 52 Q40 60 12 48 Z" fill="#ffffff"/></svg>
+    </div>
+
+    <!-- title -->
+    <div class="title" role="heading" aria-level="1">
+      <h1 id="mainTitle">Happy Birthday, Grandpa</h1>
+      <p id="subTitle">Wishing you smiles and warm cake</p>
+    </div>
+
+    <!-- cake with face and single candle + flame -->
+    <div class="cakeWrap cake" aria-hidden="false" aria-label="Cute cake">
+      <svg id="cakeSVG" viewBox="0 0 400 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Birthday cake">
+        <ellipse cx="200" cy="330" rx="130" ry="18" fill="#fff6e6" opacity="0.9"/>
+        <rect x="80" y="200" width="240" height="110" rx="26" fill="#ffd9df" stroke="#f8b9c0" stroke-width="2"/>
+        <path d="M80 200 Q120 168 160 198 Q200 155 240 198 Q280 168 320 200 L320 220 L80 220 Z" fill="#fff6f8" stroke="#ffe7ee" stroke-width="1"/>
+        <rect x="140" y="140" width="120" height="70" rx="20" fill="#ffe9b8" stroke="#f7d896" stroke-width="1.6"/>
+
+        <!-- single candle (body) -->
+        <rect id="candleBody" x="192" y="92" width="16" height="46" rx="3" fill="#ffffff"/>
+        <!-- flame group: positioned relative to SVG coordinates -->
+        <g id="flame" transform="translate(200,86)" style="transform-origin:200px 86px;">
+          <path id="flameShape" d="M0 0 C 6 -8, 4 -18, 0 -22 C -4 -18, -6 -8, 0 0 Z" fill="#ffb84d"/>
+          <path d="M0 -6 C 2 -8, 1 -12, 0 -14 C -1 -12, -2 -8, 0 -6 Z" fill="#ffd77a" opacity="0.95"/>
+        </g>
+
+        <!-- face group (eyes, smile) -->
+        <g id="face" transform="translate(200,180)">
+          <circle id="eyeL" cx="-36" cy="10" r="10" fill="#3b3b3b"/>
+          <circle id="eyeR" cx="36" cy="10" r="10" fill="#3b3b3b"/>
+          <path id="smile" d="M -34 28 Q 0 46 34 28" fill="none" stroke="#3b3b3b" stroke-width="4" stroke-linecap="round"/>
+        </g>
+
+        <circle cx="164" cy="190" r="8" fill="#ffb3c4" opacity="0.9"/>
+        <circle cx="236" cy="190" r="8" fill="#ffb3c4" opacity="0.9"/>
+      </svg>
+    </div>
+
+    <div class="note" aria-hidden="true">Press Celebrate for confetti again 🎉</div>
+    <canvas id="confetti" aria-hidden="true"></canvas>
+  </div>
+
 <script>
-const canvas = document.getElementById('scene');
-const ctx = canvas.getContext('2d');
-let width = window.innerWidth;
-let height = window.innerHeight;
-canvas.width = width;
-canvas.height = height;
+/* ---------- Setup confetti canvas & fit ---------- */
+const confettiCanvas = document.getElementById('confetti');
+const stage = document.querySelector('.stage');
+const ctx = confettiCanvas.getContext('2d');
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+let W = 0, H = 0;
 
-function drawMoon() {
-  const moonX = width * 0.8;
-  const moonY = height * 0.2;
-  const radius = 60;
-
-  ctx.save();
-  ctx.fillStyle = '#ffffcc';
-  ctx.beginPath();
-  ctx.arc(moonX, moonY, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // half shadow
-  ctx.fillStyle = '#07142a';
-  ctx.beginPath();
-  ctx.arc(moonX + 20, moonY, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+function fitCanvas(){
+  const rect = stage.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  confettiCanvas.width = Math.round(W * DPR);
+  confettiCanvas.height = Math.round(H * DPR);
+  confettiCanvas.style.width = rect.width + 'px';
+  confettiCanvas.style.height = rect.height + 'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
 }
+window.addEventListener('resize', fitCanvas);
+fitCanvas();
 
-let lanterns = [];
-for(let i=0; i<6; i++) {
-  lanterns.push({
-    x: Math.random() * width,
-    y: Math.random() * height * 0.6 + height * 0.2,
-    angle: Math.random() * Math.PI * 2,
-    swing: Math.random() * 0.02 + 0.01
+/* ---------- Clouds drift ---------- */
+const clouds = [
+  {el: document.getElementById('cloud1'), speed: 0.02, dir: 1},
+  {el: document.getElementById('cloud2'), speed: 0.015, dir: -1},
+  {el: document.getElementById('cloud3'), speed: 0.01, dir: 1}
+];
+function tickClouds(){
+  clouds.forEach((c, i)=>{
+    const el = c.el;
+    // convert left% to number
+    let val = parseFloat(el.style.left);
+    if(Number.isNaN(val)){
+      val = (i===0? -8 : i===1? 62 : 18);
+    }
+    val += c.speed * (c.dir === 1 ? 1 : -1);
+    if(val > 110) val = -30;
+    if(val < -50) val = 110;
+    el.style.left = val + '%';
   });
 }
 
-function drawLantern(lantern) {
-  ctx.save();
-  ctx.translate(lantern.x, lantern.y);
-  ctx.rotate(Math.sin(lantern.angle) * 0.3);
-  ctx.fillStyle = 'orange';
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 15, 25, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // glow
-  ctx.shadowColor = 'rgba(255,200,100,0.6)';
-  ctx.shadowBlur = 20;
-  ctx.fill();
-  ctx.restore();
+/* ---------- Cake face blink (tiny) ---------- */
+const face = document.getElementById('face');
+let blinkCounter = 0;
+function maybeBlink(){
+  blinkCounter--;
+  if(blinkCounter <= 0){
+    blinkCounter = 120 + Math.floor(Math.random()*260);
+    // animate eyes squinting quickly
+    const eyeL = document.getElementById('eyeL');
+    const eyeR = document.getElementById('eyeR');
+    eyeL.animate([{r:10},{r:1},{r:10}], { duration:280, easing:'ease-in-out' });
+    eyeR.animate([{r:10},{r:1},{r:10}], { duration:280, easing:'ease-in-out' });
+    // also a tiny smile wiggle
+    const smile = document.getElementById('smile');
+    smile.animate([{transform:'translateY(0)'},{transform:'translateY(2px)'},{transform:'translateY(0)'}], { duration:280, easing:'ease-in-out' });
+  }
 }
 
-function animate() {
-  ctx.clearRect(0,0,width,height);
-  drawMoon();
-
-  lanterns.forEach(lantern => {
-    lantern.angle += lantern.swing;
-    drawLantern(lantern);
-  });
-
-  requestAnimationFrame(animate);
+/* ---------- Confetti system ---------- */
+let particles = [];
+let confettiActive = false;
+function spawnConfettiBurst(cx, cy, count=80){
+  const colors = ['#ff6b6b','#ffd166','#7bd389','#7bc7ff','#cfa9ff','#fff1a8'];
+  for(let i=0;i<count;i++){
+    const ang = Math.random()*Math.PI - Math.PI/2;
+    const spd = 2 + Math.random()*5;
+    particles.push({
+      x: cx + (Math.random()*80-40),
+      y: cy + (Math.random()*40-20),
+      vx: Math.cos(ang) * spd * (0.8 + Math.random()*0.8),
+      vy: Math.sin(ang) * spd * (0.8 + Math.random()*0.8),
+      size: 6 + Math.random()*8,
+      rot: Math.random()*Math.PI*2,
+      vrot: (Math.random()*0.2-0.1),
+      color: colors[Math.floor(Math.random()*colors.length)],
+      life: 0,
+      ttl: 70 + Math.floor(Math.random()*40),
+      gravity: 0.12 + Math.random()*0.06,
+      drag: 0.995
+    });
+  }
+}
+function updateConfetti(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.vy += p.gravity;
+    p.vx *= p.drag; p.vy *= p.drag;
+    p.x += p.vx; p.y += p.vy;
+    p.rot += p.vrot;
+    p.life++;
+    const alpha = Math.max(0, 1 - p.life / p.ttl);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+    ctx.restore();
+    if(p.life > p.ttl || p.y > H + 40) particles.splice(i,1);
+  }
 }
 
-animate();
+/* ---------- Start auto confetti on load for ~4s ---------- */
+function startAutoConfetti(){
+  confettiActive = true;
+  const rect = stage.getBoundingClientRect();
+  const cx = rect.width/2, cy = rect.height/2 - 20;
+  spawnConfettiBurst(cx, cy - 40, 90);
+  setTimeout(()=> spawnConfettiBurst(cx - 80, cy - 60, 60), 320);
+  setTimeout(()=> spawnConfettiBurst(cx + 80, cy - 60, 60), 680);
+  setTimeout(()=> { confettiActive = false; }, 4200);
+}
 
-window.addEventListener('resize', () => {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
+/* replay button */
+document.getElementById('replayBtn').addEventListener('click', ()=>{
+  confettiActive = true; particles = [];
+  const rect = stage.getBoundingClientRect();
+  const cx = rect.width/2, cy = rect.height/2 - 20;
+  spawnConfettiBurst(cx, cy - 40, 120);
+  setTimeout(()=> { confettiActive = false; }, 4200);
 });
+/* toggle button */
+let toggleEnabled = true;
+document.getElementById('toggleBtn').addEventListener('click', ()=>{
+  toggleEnabled = !toggleEnabled;
+  document.getElementById('toggleBtn').textContent = toggleEnabled ? 'Toggle' : 'Muted';
+});
+
+/* ---------- Candle flame flicker + blow logic ---------- */
+const flameG = document.getElementById('flame');
+let flameAlive = true;
+let flameAnimHandle = null;
+
+// flicker using rAF to keep in sync with loop
+function flameFlickerStep(){
+  if(!flameAlive) return;
+  // slight random scale and rotation
+  const scale = 0.92 + Math.random() * 0.2;
+  const rot = (Math.random() * 6) - 3;
+  flameG.style.transform = `translate(200px,86px) scale(${scale}) rotate(${rot}deg)`;
+  // schedule next flicker
+  flameAnimHandle = setTimeout(flameFlickerStep, 110 + Math.random()*90);
+}
+// start flicker
+flameFlickerStep();
+
+// blow button behavior
+document.getElementById('blowBtn').addEventListener('click', ()=>{
+  if(!flameAlive) return;
+  flameAlive = false;
+  // stop continuous flicker
+  clearTimeout(flameAnimHandle);
+
+  // eye blink / face react
+  const eyeL = document.getElementById('eyeL');
+  const eyeR = document.getElementById('eyeR');
+  const smile = document.getElementById('smile');
+  // quick "closing" animation using scale transform on the eyes via animate
+  eyeL.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
+  eyeR.animate([{transform:'scaleY(1)'},{transform:'scaleY(0.12)'},{transform:'scaleY(1)'}], { duration: 420, easing: 'ease-in-out' });
+  smile.animate([{transform:'translateY(0)'},{transform:'translateY(4px)'},{transform:'translateY(0)'}], { duration:420, easing:'ease-in-out' });
+
+  // animate flame shrink + fade by manipulating opacity & scale via Web Animations
+  flameG.animate([
+    { transform: 'translate(200px,86px) scale(1)', opacity: 1 },
+    { transform: 'translate(200px,78px) scale(0.2)', opacity: 0 }
+  ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+
+  // smoke puff: create several light circles that rise & fade
+  const svg = document.getElementById('cakeSVG');
+  // We'll animate smoke using absolute-positioned canvas overlay approach: draw circles on confetti canvas
+  // but simpler: create lite SVG circles appended to the cake SVG and animate them with WAAPI
+  const ns = "http://www.w3.org/2000/svg";
+  for(let i=0;i<6;i++){
+    const s = document.createElementNS(ns, 'circle');
+    const ox = (Math.random()*20 - 10);
+    s.setAttribute('cx', 200 + ox);
+    s.setAttribute('cy', 78 + (Math.random()*6 - 3));
+    const r = 4 + Math.random()*6;
+    s.setAttribute('r', r.toString());
+    s.setAttribute('fill', '#bfbfbf');
+    s.setAttribute('opacity', '0.75');
+    svg.appendChild(s);
+    // animate each smoke circle
+    const dx = (Math.random()*16 - 8);
+    const dy = -24 - Math.random()*18;
+    const dur = 700 + Math.random()*400;
+    s.animate([
+      { transform: 'translate(0,0)', opacity: 0.7 },
+      { transform: `translate(${dx}px, ${dy}px)`, opacity: 0.02 }
+    ], { duration: dur, easing: 'ease-out', fill: 'forwards' });
+    // remove after animation
+    setTimeout(()=> { try{ s.remove(); }catch(e){} }, dur + 40);
+  }
+});
+
+/* ---------- Main loop: blink, clouds, confetti rendering ---------- */
+let raf;
+function loop(){
+  maybeBlink();
+  tickClouds();
+  if(confettiActive && toggleEnabled){
+    updateConfetti();
+  } else {
+    // clear confetti canvas between bursts if not active; keep clearing so smoke from SVG still visible
+    ctx.clearRect(0,0,W,H);
+    // still draw any existing particles (we already clear when none)
+    updateConfetti();
+  }
+  raf = requestAnimationFrame(loop);
+}
+loop();
+startAutoConfetti();
 </script>
 </body>
-</html>
+        </html>
